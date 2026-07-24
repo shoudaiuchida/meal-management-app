@@ -1,4 +1,5 @@
 import styles from "./page.module.css";
+import Link from "next/link";
 
 export default function LoginPage() {
   return (
@@ -45,21 +46,16 @@ export default function LoginPage() {
             />
           </div>
 
-          <button
-            type="submit"
-            className={styles.button}
-          >
-            ログイン
-          </button>
-
-        </form>
-
-        <p className={styles.signup}>
-          アカウントをお持ちでない方は{" "}
-          <a href="#" className={styles.signupLink}>
-            新規登録
-          </a>
-        </p>
+          <button type="submit" className={styles.button}>
+             ログイン
+             </button>
+             </form>
+             <p className={styles.signupText}>
+              アカウントをお持ちでない方は{" "}
+              <Link href="/signup" className={styles.signupLink}>
+              新規登録
+              </Link>
+              </p>
 
       </div>
     </main>
