@@ -3,24 +3,20 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-}
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-main: #4ADE80;
+  --color-accent: #FB923C;
+  --color-bg: #F0FDF4;
+  --color-text: #334155;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  min-height: 100vh;
+  background: linear-gradient(
+    135deg,
+    var(--color-bg) 0%,
+    #FFF7ED 100%
+  );
+  color: var(--color-text);
   font-family: Arial, Helvetica, sans-serif;
 }
