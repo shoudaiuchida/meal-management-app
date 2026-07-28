@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: meal_tracker_db
+    environment:
+      POSTGRES_USER: meal_user
+      POSTGRES_PASSWORD: meal_password
+      POSTGRES_DB: meal_tracker
+    ports:
+      - "5433:5432"
+    volumes:
+      - meal_tracker_data:/var/lib/postgresql
+
+volumes:
+  meal_tracker_data:
