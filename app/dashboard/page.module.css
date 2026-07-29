@@ -1,0 +1,154 @@
+.page {
+  min-height: 100vh;
+  padding: 24px;
+  background-color: #ffffff;
+}
+
+.container {
+  width: 100%;
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 48px;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #334155;
+  font-size: 22px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.logoIcon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.logoutLink {
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
+  text-underline-offset: 4px;
+}
+
+.logoutLink:hover {
+  color: #334155;
+}
+
+.introduction {
+  margin-top: 56px;
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  color: #334155;
+  font-size: 36px;
+  font-weight: 700;
+}
+
+.description {
+  margin: 12px 0 0;
+  color: #64748b;
+  font-size: 16px;
+}
+
+.menu {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.mealListButton,
+.mealInputButton {
+  display: flex;
+  min-height: 180px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 14px;
+  padding: 32px;
+  border-radius: 18px;
+  font-size: 22px;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.mealListButton {
+  background-color: #4ade80;
+  color: #14532d;
+  box-shadow: 0 10px 24px rgba(74, 222, 128, 0.24);
+}
+
+.mealInputButton {
+  background-color: #fb923c;
+  color: #7c2d12;
+  box-shadow: 0 10px 24px rgba(251, 146, 60, 0.24);
+}
+
+.mealListButton:hover,
+.mealInputButton:hover {
+  transform: translateY(-3px);
+}
+
+.mealListButton:focus-visible,
+.mealInputButton:focus-visible,
+.logo:focus-visible,
+.logoutLink:focus-visible {
+  outline: 3px solid #334155;
+  outline-offset: 3px;
+}
+
+.buttonIcon {
+  font-size: 36px;
+  line-height: 1;
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: 20px;
+  }
+
+  .header {
+    margin-bottom: 32px;
+  }
+
+  .introduction {
+    margin-top: 40px;
+  }
+
+  .title {
+    font-size: 28px;
+  }
+
+  .description {
+    font-size: 15px;
+  }
+
+  .menu {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .mealListButton,
+  .mealInputButton {
+    min-height: 130px;
+    font-size: 20px;
+  }
+}

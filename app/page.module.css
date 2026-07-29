@@ -1,0 +1,125 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background-color: #ffffff;
+}
+
+.container {
+  width: 100%;
+  max-width: 720px;
+  text-align: center;
+}
+
+.header {
+  margin-bottom: 40px;
+}
+
+.icon {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 52px;
+  line-height: 1;
+}
+
+.title {
+  margin: 0;
+  color: #334155;
+  font-size: 40px;
+  font-weight: 700;
+}
+
+.description {
+  margin: 12px 0 0;
+  color: #64748b;
+  font-size: 16px;
+}
+
+.menu {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.mealListButton,
+.mealInputButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  padding: 24px;
+  border-radius: 16px;
+  font-size: 22px;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.mealListButton {
+  background-color: #4ade80;
+  color: #14532d;
+  box-shadow: 0 8px 20px rgba(74, 222, 128, 0.25);
+}
+
+.mealInputButton {
+  background-color: #fb923c;
+  color: #7c2d12;
+  box-shadow: 0 8px 20px rgba(251, 146, 60, 0.25);
+}
+
+.mealListButton:hover,
+.mealInputButton:hover {
+  transform: translateY(-3px);
+}
+
+.mealListButton:focus-visible,
+.mealInputButton:focus-visible,
+.accountLink:focus-visible {
+  outline: 3px solid #334155;
+  outline-offset: 3px;
+}
+
+.accountLinks {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 36px;
+}
+
+.accountLink {
+  color: #475569;
+  font-weight: 600;
+  text-underline-offset: 4px;
+}
+
+.accountLink:hover {
+  color: #16a34a;
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: 20px;
+  }
+
+  .header {
+    margin-bottom: 32px;
+  }
+
+  .title {
+    font-size: 32px;
+  }
+
+  .menu {
+    grid-template-columns: 1fr;
+  }
+
+  .mealListButton,
+  .mealInputButton {
+    min-height: 96px;
+    font-size: 20px;
+  }
+}
