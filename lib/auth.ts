@@ -1,37 +1,50 @@
+import crypto from "node:crypto";
 import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
 
-type AccessTokenPayload = {
+import { db } from "@/lib/db";
+
+type CurrentUser = {
   userId: number;
   role: string;
 };
 
-export async function getCurrentUser(): Promise<AccessTokenPayload | null> {
+export async function getCurrentUser(): Promise<CurrentUser | null> {
   const cookieStore = await cookies();
 
-  const accessToken = cookieStore.get("access_token")?.value;
+  const sessionId = cookieStore.get("session_id")?.value;
 
-  if (!accessToken) {
+  if (!sessionId) {
     return null;
   }
 
-  const jwtSecret = process.env.JWT_SECRET;
+  const sessionIdHash = crypto
+    .createHash("sha256")
+    .update(sessionId)
+    .digest("hex");
 
-  if (!jwtSecret) {
-    throw new Error("JWT_SECRETが設定されていません");
-  }
+  const result = await db.query(
+    `
+      SELECT
+        users.id AS user_id,
+        users.role
+      FROM sessions
+      INNER JOIN users
+        ON sessions.user_id = users.id
+      WHERE sessions.session_id_hash = $1
+        AND sessions.expires_at > CURRENT_TIMESTAMP
+      LIMIT 1
+    `,
+    [sessionIdHash],
+  );
 
-  try {
-    const payload = jwt.verify(
-      accessToken,
-      jwtSecret
-    ) as AccessTokenPayload;
-
-    return {
-      userId: payload.userId,
-      role: payload.role,
-    };
-  } catch {
+  if (result.rows.length === 0) {
     return null;
   }
+
+  const user = result.rows[0];
+
+  return {
+    userId: user.user_id,
+    role: user.role,
+  };
 }
