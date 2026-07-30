@@ -1,7 +1,45 @@
+import crypto from "node:crypto";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+
+import { getCurrentUser } from "@/lib/auth";
+import { db } from "@/lib/db";
+
 import styles from "./page.module.css";
 
-export default function DashboardPage() {
+async function logout() {
+  "use server";
+
+  const cookieStore = await cookies();
+  const sessionId = cookieStore.get("session_id")?.value;
+
+  if (sessionId) {
+    const sessionIdHash = crypto
+      .createHash("sha256")
+      .update(sessionId)
+      .digest("hex");
+
+    await db.query(
+      `
+        DELETE FROM sessions
+        WHERE session_id_hash = $1
+      `,
+      [sessionIdHash],
+    );
+  }
+
+  cookieStore.delete("session_id");
+  redirect("/login");
+}
+
+export default async function DashboardPage() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
   return (
     <main className={styles.page}>
       <section className={styles.container}>
@@ -12,9 +50,11 @@ export default function DashboardPage() {
               Meal Tracker
             </Link>
 
-            <Link href="/login" className={styles.logoutLink}>
-              ログアウト
-            </Link>
+            <form action={logout}>
+              <button type="submit" className={styles.logoutLink}>
+                ログアウト
+              </button>
+            </form>
           </div>
 
           <div className={styles.introduction}>

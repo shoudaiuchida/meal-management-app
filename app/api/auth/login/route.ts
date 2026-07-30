@@ -1,5 +1,4 @@
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import crypto from "node:crypto";
 
@@ -60,64 +59,38 @@ export async function POST(request: Request) {
       );
     }
 
-    const jwtSecret = process.env.JWT_SECRET;
+    const sessionId = crypto.randomBytes(64).toString("hex");
 
-    if (!jwtSecret) {
-      throw new Error("JWT_SECRETが設定されていません。");
-    }
+    const sessionIdHash = crypto
+      .createHash("sha256")
+      .update(sessionId)
+      .digest("hex");
 
-const accessToken = jwt.sign(
-  {
-    userId: user.id,
-    role: user.role,
-  },
-  jwtSecret,
-  {
-    algorithm: "HS256",
-    expiresIn: "15m",
-  },
-);
+    const sessionExpiresAt = new Date(
+      Date.now() + 7 * 24 * 60 * 60 * 1000,
+    );
 
-const refreshToken = crypto.randomBytes(64).toString("hex");
+    await db.query(
+      `
+        INSERT INTO sessions (
+          user_id,
+          session_id_hash,
+          expires_at
+        )
+        VALUES ($1, $2, $3)
+      `,
+      [user.id, sessionIdHash, sessionExpiresAt],
+    );
 
-const refreshTokenExpiresAt = new Date(
-  Date.now() + 7 * 24 * 60 * 60 * 1000,
-);
+    const cookieStore = await cookies();
 
-const refreshTokenHash = crypto
-  .createHash("sha256")
-  .update(refreshToken)
-  .digest("hex");
-
-await db.query(
-  `
-    INSERT INTO refresh_tokens (
-      user_id,
-      token_hash,
-      expires_at
-    )
-    VALUES ($1, $2, $3)
-  `,
-  [user.id, refreshTokenHash, refreshTokenExpiresAt],
-);
-
-const cookieStore = await cookies();
-
-   cookieStore.set("access_token", accessToken, {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax",
-  path: "/",
-  maxAge: 60 * 15,
-});
-
-cookieStore.set("refresh_token", refreshToken, {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax",
-  path: "/",
-  maxAge: 60 * 60 * 24 * 7,
-});
+    cookieStore.set("session_id", sessionId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    });
 
     return Response.json(
       {
