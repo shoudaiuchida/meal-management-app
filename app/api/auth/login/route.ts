@@ -66,7 +66,7 @@ export async function POST(request: Request) {
       throw new Error("JWT_SECRETが設定されていません。");
     }
 
-    const accessToken = jwt.sign(
+const accessToken = jwt.sign(
   {
     userId: user.id,
     role: user.role,
@@ -77,33 +77,47 @@ export async function POST(request: Request) {
     expiresIn: "15m",
   },
 );
+
 const refreshToken = crypto.randomBytes(64).toString("hex");
+
 const refreshTokenExpiresAt = new Date(
   Date.now() + 7 * 24 * 60 * 60 * 1000,
 );
 
-const [headerPart, payloadPart, signaturePart] = accessToken.split(".");
+const refreshTokenHash = crypto
+  .createHash("sha256")
+  .update(refreshToken)
+  .digest("hex");
 
-const decodedHeader = JSON.parse(
-  Buffer.from(headerPart, "base64url").toString("utf-8"),
+await db.query(
+  `
+    INSERT INTO refresh_tokens (
+      user_id,
+      token_hash,
+      expires_at
+    )
+    VALUES ($1, $2, $3)
+  `,
+  [user.id, refreshTokenHash, refreshTokenExpiresAt],
 );
 
-const decodedPayload = JSON.parse(
-  Buffer.from(payloadPart, "base64url").toString("utf-8"),
-);
-console.log("JWT Header:", decodedHeader);
-console.log("JWT Payload:", decodedPayload);
-console.log("JWT Signature:", signaturePart);
-console.log("JWT Full Token:", accessToken);
-    const cookieStore = await cookies();
+const cookieStore = await cookies();
 
-    cookieStore.set("access_token", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 15,
-    });
+   cookieStore.set("access_token", accessToken, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax",
+  path: "/",
+  maxAge: 60 * 15,
+});
+
+cookieStore.set("refresh_token", refreshToken, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax",
+  path: "/",
+  maxAge: 60 * 60 * 24 * 7,
+});
 
     return Response.json(
       {
