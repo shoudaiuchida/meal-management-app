@@ -18,33 +18,73 @@ type MealsResponse = {
   message?: string;
 };
 
+async function fetchMeals() {
+  const response = await fetch("/api/meals");
+  const data: MealsResponse = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message ?? "食事一覧の取得に失敗しました。");
+  }
+
+  return data.meals ?? [];
+}
+
 export default function MealsPage() {
   const [meals, setMeals] = useState<Meal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [deletingMealId, setDeletingMealId] = useState<number | null>(null);
 
   useEffect(() => {
-    async function fetchMeals() {
+    async function loadMeals() {
       try {
-        const response = await fetch("/api/meals");
-        const data: MealsResponse = await response.json();
-
-        if (!response.ok) {
-          setErrorMessage(data.message ?? "食事一覧の取得に失敗しました。");
-          return;
-        }
-
-        setMeals(data.meals ?? []);
+        const mealList = await fetchMeals();
+        setMeals(mealList);
       } catch (error) {
         console.error("Meal list request failed:", error);
-        setErrorMessage("通信に失敗しました。もう一度お試しください。");
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "通信に失敗しました。もう一度お試しください。",
+        );
       } finally {
         setIsLoading(false);
       }
     }
 
-    fetchMeals();
+    loadMeals();
   }, []);
+
+  async function handleDelete(mealId: number) {
+    const shouldDelete = window.confirm("この食事を削除しますか？");
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    setErrorMessage("");
+    setDeletingMealId(mealId);
+
+    try {
+      const response = await fetch(`/api/meals/${mealId}`, {
+        method: "DELETE",
+      });
+      const data: MealsResponse = await response.json();
+
+      if (!response.ok) {
+        setErrorMessage(data.message ?? "食事の削除に失敗しました。");
+        return;
+      }
+
+      const mealList = await fetchMeals();
+      setMeals(mealList);
+    } catch (error) {
+      console.error("Meal deletion failed:", error);
+      setErrorMessage("通信に失敗しました。もう一度お試しください。");
+    } finally {
+      setDeletingMealId(null);
+    }
+  }
 
   return (
     <main className="min-h-screen bg-[#f0fdf4] px-4 py-10 text-[#334155] sm:px-6">
@@ -94,7 +134,7 @@ export default function MealsPage() {
             </p>
           )}
 
-          {!isLoading && !errorMessage && meals.length > 0 && (
+          {!isLoading && meals.length > 0 && (
             <div className="flex flex-col gap-5">
               {meals.map((meal) => {
                 const mealDate = meal.meal_date
@@ -110,9 +150,19 @@ export default function MealsPage() {
                       <h2 className="m-0 text-xl font-bold text-[#334155]">
                         {mealDate}
                       </h2>
-                      <span className="w-fit rounded-full bg-[#4ade80] px-4 py-1.5 text-sm font-bold text-[#14532d]">
-                        {meal.meal_type}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className="w-fit rounded-full bg-[#4ade80] px-4 py-1.5 text-sm font-bold text-[#14532d]">
+                          {meal.meal_type}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(meal.id)}
+                          disabled={deletingMealId !== null}
+                          className="cursor-pointer rounded-lg border border-[#fca5a5] bg-white px-3 py-1.5 text-sm font-bold text-[#b91c1c] transition hover:bg-[#fef2f2] disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {deletingMealId === meal.id ? "削除中..." : "削除"}
+                        </button>
+                      </div>
                     </div>
 
                     <dl className="grid gap-4 sm:grid-cols-2">

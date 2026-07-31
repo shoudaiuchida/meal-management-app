@@ -104,23 +104,23 @@ export async function GET() {
     }
 
     const result = await db.query(
-      `
-        SELECT
-          meals.id,
-          meals.meal_date,
-          meals.main_dish,
-          meals.side_dish,
-          meals.soup,
-          meals.memo,
-          meal_types.name AS meal_type
-        FROM meals
-        INNER JOIN meal_types
-          ON meals.meal_type_id = meal_types.id
-        WHERE meals.user_id = $1
-        ORDER BY meals.meal_date DESC, meals.id DESC
-      `,
-      [user.userId],
-    );
+  `
+    SELECT
+      meals.id,
+      TO_CHAR(meals.meal_date, 'YYYY-MM-DD') AS meal_date,
+      meals.main_dish,
+      meals.side_dish,
+      meals.soup,
+      meals.memo,
+      meal_types.name AS meal_type
+    FROM meals
+    INNER JOIN meal_types
+      ON meals.meal_type_id = meal_types.id
+    WHERE meals.user_id = $1
+    ORDER BY meals.meal_date DESC, meals.id DESC
+  `,
+  [user.userId],
+);
 
     return Response.json(
       { meals: result.rows },
