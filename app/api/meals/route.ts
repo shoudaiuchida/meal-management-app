@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser();
+    
 
     if (!user) {
       return Response.json(
@@ -85,6 +86,51 @@ export async function POST(request: Request) {
       {
         message: "食事の登録中にエラーが発生しました。",
       },
+      { status: 500 },
+    );
+  }
+}
+
+
+export async function GET() {
+  try {
+    const user = await getCurrentUser();
+
+    if (!user) {
+      return Response.json(
+        { message: "ログインが必要です。" },
+        { status: 401 },
+      );
+    }
+
+    const result = await db.query(
+      `
+        SELECT
+          meals.id,
+          meals.meal_date,
+          meals.main_dish,
+          meals.side_dish,
+          meals.soup,
+          meals.memo,
+          meal_types.name AS meal_type
+        FROM meals
+        INNER JOIN meal_types
+          ON meals.meal_type_id = meal_types.id
+        WHERE meals.user_id = $1
+        ORDER BY meals.meal_date DESC, meals.id DESC
+      `,
+      [user.userId],
+    );
+
+    return Response.json(
+      { meals: result.rows },
+      { status: 200 },
+    );
+  } catch (error) {
+    console.error(error);
+
+    return Response.json(
+      { message: "食事一覧の取得に失敗しました。" },
       { status: 500 },
     );
   }
