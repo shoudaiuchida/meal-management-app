@@ -154,6 +154,12 @@ export default function MealsPage() {
                         <span className="w-fit rounded-full bg-[#4ade80] px-4 py-1.5 text-sm font-bold text-[#14532d]">
                           {meal.meal_type}
                         </span>
+                        <Link
+                          href={`/meals/${meal.id}/edit`}
+                          className="rounded-lg border border-[#fdba74] bg-[#fff7ed] px-3 py-1.5 text-sm font-bold text-[#9a3412] no-underline transition hover:bg-[#ffedd5]"
+                        >
+                          編集
+                        </Link>
                         <button
                           type="button"
                           onClick={() => handleDelete(meal.id)}
