@@ -50,11 +50,20 @@ export default async function DashboardPage() {
               Meal Tracker
             </Link>
 
-            <form action={logout}>
-              <button type="submit" className={styles.logoutLink}>
-                ログアウト
-              </button>
-            </form>
+            <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center sm:gap-4">
+              <Link
+                href="/mypage"
+                className="rounded-lg bg-[#dcfce7] px-3 py-2 text-sm font-bold text-[#166534] no-underline transition hover:brightness-95"
+              >
+                マイページ
+              </Link>
+
+              <form action={logout}>
+                <button type="submit" className={styles.logoutLink}>
+                  ログアウト
+                </button>
+              </form>
+            </div>
           </div>
 
           <div className={styles.introduction}>
