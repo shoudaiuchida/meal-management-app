@@ -24,6 +24,15 @@ export async function POST(request: Request) {
       );
     }
 
+    if (password.length < 8 || password.length > 64) {
+      return Response.json(
+        {
+          message: "パスワードは8文字以上64文字以下で入力してください。",
+        },
+        { status: 400 },
+      );
+    }
+
     const normalizedEmail = email.trim().toLowerCase();
     const trimmedUserName = user_name.trim();
 

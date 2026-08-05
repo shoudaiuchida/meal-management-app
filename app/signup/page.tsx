@@ -107,7 +107,12 @@ export default function SignupPage() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
+              minLength={8}
+              maxLength={64}
             />
+            <p className={styles.hint}>
+              8文字以上64文字以下で入力してください
+            </p>
           </div>
 
           <div className={styles.field}>
@@ -122,6 +127,8 @@ export default function SignupPage() {
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
               required
+              minLength={8}
+              maxLength={64}
             />
           </div>
 
