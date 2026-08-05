@@ -92,8 +92,19 @@ export async function POST(request: Request) {
 }
 
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const requestedPage = Number(searchParams.get("page"));
+
+    const currentPage =
+      Number.isInteger(requestedPage) && requestedPage > 0
+        ? requestedPage
+        : 1;
+
+    const limit = 10;
+    const offset = (currentPage - 1) * limit;
+
     const user = await getCurrentUser();
 
     if (!user) {
@@ -122,12 +133,15 @@ export async function GET() {
         {
           meals: sampleMeals,
           isGuest: true,
+          currentPage: 1,
+          totalPages: 1,
+          totalCount: sampleMeals.length,
         },
         { status: 200 },
       );
     }
 
-    const result = await db.query(
+    const mealsResult = await db.query(
       `
         SELECT
           meals.id,
@@ -142,14 +156,31 @@ export async function GET() {
           ON meals.meal_type_id = meal_types.id
         WHERE meals.user_id = $1
         ORDER BY meals.meal_date DESC, meals.id DESC
+        LIMIT $2
+        OFFSET $3
+      `,
+      [user.userId, limit, offset],
+    );
+
+    const countResult = await db.query(
+      `
+        SELECT COUNT(*)
+        FROM meals
+        WHERE user_id = $1
       `,
       [user.userId],
     );
 
+    const totalCount = Number(countResult.rows[0].count);
+    const totalPages = Math.ceil(totalCount / limit);
+
     return Response.json(
       {
-        meals: result.rows,
+        meals: mealsResult.rows,
         isGuest: false,
+        currentPage,
+        totalPages,
+        totalCount,
       },
       { status: 200 },
     );
