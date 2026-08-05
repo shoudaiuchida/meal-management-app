@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 export async function POST(request: Request) {
   try {
     const user = await getCurrentUser();
-    
+
 
     if (!user) {
       return Response.json(
@@ -97,40 +97,69 @@ export async function GET() {
     const user = await getCurrentUser();
 
     if (!user) {
+      const sampleMeals = [
+        {
+          id: 1,
+          meal_date: "2026-08-05",
+          main_dish: "鶏の照り焼き",
+          side_dish: "ほうれん草のおひたし",
+          soup: "味噌汁",
+          memo: "未ログインユーザー向けのサンプルデータです。",
+          meal_type: "夕食",
+        },
+        {
+          id: 2,
+          meal_date: "2026-08-04",
+          main_dish: "鮭の塩焼き",
+          side_dish: "冷ややっこ",
+          soup: "豚汁",
+          memo: "ログインすると自分の食事を記録できます。",
+          meal_type: "朝食",
+        },
+      ];
+
       return Response.json(
-        { message: "ログインが必要です。" },
-        { status: 401 },
+        {
+          meals: sampleMeals,
+          isGuest: true,
+        },
+        { status: 200 },
       );
     }
 
     const result = await db.query(
-  `
-    SELECT
-      meals.id,
-      TO_CHAR(meals.meal_date, 'YYYY-MM-DD') AS meal_date,
-      meals.main_dish,
-      meals.side_dish,
-      meals.soup,
-      meals.memo,
-      meal_types.name AS meal_type
-    FROM meals
-    INNER JOIN meal_types
-      ON meals.meal_type_id = meal_types.id
-    WHERE meals.user_id = $1
-    ORDER BY meals.meal_date DESC, meals.id DESC
-  `,
-  [user.userId],
-);
+      `
+        SELECT
+          meals.id,
+          TO_CHAR(meals.meal_date, 'YYYY-MM-DD') AS meal_date,
+          meals.main_dish,
+          meals.side_dish,
+          meals.soup,
+          meals.memo,
+          meal_types.name AS meal_type
+        FROM meals
+        INNER JOIN meal_types
+          ON meals.meal_type_id = meal_types.id
+        WHERE meals.user_id = $1
+        ORDER BY meals.meal_date DESC, meals.id DESC
+      `,
+      [user.userId],
+    );
 
     return Response.json(
-      { meals: result.rows },
+      {
+        meals: result.rows,
+        isGuest: false,
+      },
       { status: 200 },
     );
   } catch (error) {
     console.error(error);
 
     return Response.json(
-      { message: "食事一覧の取得に失敗しました。" },
+      {
+        message: "食事一覧の取得に失敗しました。",
+      },
       { status: 500 },
     );
   }
