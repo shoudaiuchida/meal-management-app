@@ -15,6 +15,7 @@ type Meal = {
 
 type MealsResponse = {
   meals?: Meal[];
+  isGuest?: boolean;
   message?: string;
 };
 
@@ -26,11 +27,15 @@ async function fetchMeals() {
     throw new Error(data.message ?? "食事一覧の取得に失敗しました。");
   }
 
-  return data.meals ?? [];
+  return {
+    meals: data.meals ?? [],
+    isGuest: data.isGuest ?? false,
+  };
 }
 
 export default function MealsPage() {
   const [meals, setMeals] = useState<Meal[]>([]);
+  const [isGuest, setIsGuest] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [deletingMealId, setDeletingMealId] = useState<number | null>(null);
@@ -38,8 +43,9 @@ export default function MealsPage() {
   useEffect(() => {
     async function loadMeals() {
       try {
-        const mealList = await fetchMeals();
-        setMeals(mealList);
+        const result = await fetchMeals();
+        setMeals(result.meals);
+        setIsGuest(result.isGuest);
       } catch (error) {
         console.error("Meal list request failed:", error);
         setErrorMessage(
@@ -76,8 +82,9 @@ export default function MealsPage() {
         return;
       }
 
-      const mealList = await fetchMeals();
-      setMeals(mealList);
+      const result = await fetchMeals();
+      setMeals(result.meals);
+      setIsGuest(result.isGuest);
     } catch (error) {
       console.error("Meal deletion failed:", error);
       setErrorMessage("通信に失敗しました。もう一度お試しください。");
@@ -91,7 +98,7 @@ export default function MealsPage() {
       <section className="mx-auto w-full max-w-4xl">
         <div className="mb-6 grid gap-3 sm:grid-cols-2">
           <Link
-            href="/dashboard"
+            href={isGuest ? "/" : "/dashboard"}
             className="flex items-center justify-center rounded-xl bg-white px-4 py-3 text-sm font-bold text-[#475569] no-underline shadow-sm transition hover:bg-[#f8fafc]"
           >
             ホームに戻る
@@ -128,6 +135,12 @@ export default function MealsPage() {
             </p>
           )}
 
+          {!isLoading && !errorMessage && isGuest && (
+            <p className="mb-5 rounded-xl bg-[#fff7ed] px-4 py-3 text-center text-sm font-semibold text-[#9a3412]">
+              現在はサンプルデータを表示しています
+            </p>
+          )}
+
           {!isLoading && !errorMessage && meals.length === 0 && (
             <p className="rounded-xl bg-[#f8fafc] px-4 py-12 text-center text-[#64748b]">
               登録されている食事はありません。
@@ -154,20 +167,26 @@ export default function MealsPage() {
                         <span className="w-fit rounded-full bg-[#4ade80] px-4 py-1.5 text-sm font-bold text-[#14532d]">
                           {meal.meal_type}
                         </span>
-                        <Link
-                          href={`/meals/${meal.id}/edit`}
-                          className="rounded-lg border border-[#fdba74] bg-[#fff7ed] px-3 py-1.5 text-sm font-bold text-[#9a3412] no-underline transition hover:bg-[#ffedd5]"
-                        >
-                          編集
-                        </Link>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(meal.id)}
-                          disabled={deletingMealId !== null}
-                          className="cursor-pointer rounded-lg border border-[#fca5a5] bg-white px-3 py-1.5 text-sm font-bold text-[#b91c1c] transition hover:bg-[#fef2f2] disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          {deletingMealId === meal.id ? "削除中..." : "削除"}
-                        </button>
+                        {!isGuest && (
+                          <>
+                            <Link
+                              href={`/meals/${meal.id}/edit`}
+                              className="rounded-lg border border-[#fdba74] bg-[#fff7ed] px-3 py-1.5 text-sm font-bold text-[#9a3412] no-underline transition hover:bg-[#ffedd5]"
+                            >
+                              編集
+                            </Link>
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(meal.id)}
+                              disabled={deletingMealId !== null}
+                              className="cursor-pointer rounded-lg border border-[#fca5a5] bg-white px-3 py-1.5 text-sm font-bold text-[#b91c1c] transition hover:bg-[#fef2f2] disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {deletingMealId === meal.id
+                                ? "削除中..."
+                                : "削除"}
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
 
