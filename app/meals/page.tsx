@@ -16,11 +16,14 @@ type Meal = {
 type MealsResponse = {
   meals?: Meal[];
   isGuest?: boolean;
+  currentPage?: number;
+  totalPages?: number;
+  totalCount?: number;
   message?: string;
 };
 
-async function fetchMeals() {
-  const response = await fetch("/api/meals");
+async function fetchMeals(page: number) {
+  const response = await fetch(`/api/meals?page=${page}`);
   const data: MealsResponse = await response.json();
 
   if (!response.ok) {
@@ -30,6 +33,9 @@ async function fetchMeals() {
   return {
     meals: data.meals ?? [],
     isGuest: data.isGuest ?? false,
+    currentPage: data.currentPage ?? page,
+    totalPages: Math.max(data.totalPages ?? 1, 1),
+    totalCount: data.totalCount ?? data.meals?.length ?? 0,
   };
 }
 
@@ -39,13 +45,19 @@ export default function MealsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [deletingMealId, setDeletingMealId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
     async function loadMeals() {
       try {
-        const result = await fetchMeals();
+        const result = await fetchMeals(currentPage);
         setMeals(result.meals);
         setIsGuest(result.isGuest);
+        setCurrentPage(result.currentPage);
+        setTotalPages(result.totalPages);
+        setTotalCount(result.totalCount);
       } catch (error) {
         console.error("Meal list request failed:", error);
         setErrorMessage(
@@ -59,7 +71,13 @@ export default function MealsPage() {
     }
 
     loadMeals();
-  }, []);
+  }, [currentPage]);
+
+  function handlePageChange(page: number) {
+    setErrorMessage("");
+    setIsLoading(true);
+    setCurrentPage(page);
+  }
 
   async function handleDelete(mealId: number) {
     const shouldDelete = window.confirm("この食事を削除しますか？");
@@ -82,9 +100,18 @@ export default function MealsPage() {
         return;
       }
 
-      const result = await fetchMeals();
+      const result = await fetchMeals(currentPage);
+
+      if (result.meals.length === 0 && currentPage > 1) {
+        handlePageChange(currentPage - 1);
+        return;
+      }
+
       setMeals(result.meals);
       setIsGuest(result.isGuest);
+      setCurrentPage(result.currentPage);
+      setTotalPages(result.totalPages);
+      setTotalCount(result.totalCount);
     } catch (error) {
       console.error("Meal deletion failed:", error);
       setErrorMessage("通信に失敗しました。もう一度お試しください。");
@@ -221,6 +248,36 @@ export default function MealsPage() {
                   </article>
                 );
               })}
+            </div>
+          )}
+
+          {!isLoading && !errorMessage && totalCount > 0 && (
+            <div className="mt-8 flex flex-col items-center gap-4 border-t border-[#e2e8f0] pt-6 sm:flex-row sm:justify-between">
+              <p className="m-0 text-sm text-[#64748b]">全{totalCount}件</p>
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="cursor-pointer rounded-lg border border-[#cbd5e1] bg-white px-4 py-2 text-sm font-bold text-[#475569] transition hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  前へ
+                </button>
+
+                <span className="min-w-20 text-center text-sm font-semibold text-[#334155]">
+                  {currentPage} / {totalPages}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="cursor-pointer rounded-lg border border-[#cbd5e1] bg-white px-4 py-2 text-sm font-bold text-[#475569] transition hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  次へ
+                </button>
+              </div>
             </div>
           )}
         </div>
