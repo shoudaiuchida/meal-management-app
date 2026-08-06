@@ -59,8 +59,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const sessionId = crypto.randomBytes(64).toString("hex");
-
+    const sessionId = crypto.randomUUID();
+    
     const sessionIdHash = crypto
       .createHash("sha256")
       .update(sessionId)
